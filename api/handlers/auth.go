@@ -2,8 +2,12 @@ package handlers
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -44,10 +48,14 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	}
 
 	h := sha256.New()
+	io.Copy(h, strings.NewReader(user.Password))
+	hashed := hex.EncodeToString(h.Sum(nil))
+	fmt.Printf("user: %s, %s, %s\n", user.Username, user.Password, hashed)
 
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
 		"username": user.Username,
-		"password": string(h.Sum([]byte(user.Password))),
+		"password": hashed,
+		// "password": user.Password,
 	})
 	if cur.Err() != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
