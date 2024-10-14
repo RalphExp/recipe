@@ -49,12 +49,12 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 
 	h := sha256.New()
 	io.Copy(h, strings.NewReader(user.Password))
-	hashed := hex.EncodeToString(h.Sum(nil))
-	fmt.Printf("user: %s, %s, %s\n", user.Username, user.Password, hashed)
+	sha256sum := hex.EncodeToString(h.Sum(nil))
+	fmt.Printf("user: %s, %s, %s\n", user.Username, user.Password, sha256sum)
 
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
 		"username": user.Username,
-		"password": hashed,
+		"password": sha256sum,
 		// "password": user.Password,
 	})
 	if cur.Err() != nil {
