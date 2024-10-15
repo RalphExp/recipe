@@ -3,7 +3,6 @@ package handlers
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -12,7 +11,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/mlabouardy/recipes-api/models"
+	"github.com/ralphexp/recipes-api/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/net/context"
@@ -50,7 +49,7 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	h := sha256.New()
 	io.Copy(h, strings.NewReader(user.Password))
 	sha256sum := hex.EncodeToString(h.Sum(nil))
-	fmt.Printf("user: %s, %s, %s\n", user.Username, user.Password, sha256sum)
+	// fmt.Printf("user: %s, %s, %s\n", user.Username, user.Password, sha256sum)
 
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
 		"username": user.Username,
@@ -130,9 +129,11 @@ func (handler *AuthHandler) AuthMiddleware() gin.HandlerFunc {
 		})
 		if err != nil {
 			c.AbortWithStatus(http.StatusUnauthorized)
+			return
 		}
 		if !tkn.Valid {
 			c.AbortWithStatus(http.StatusUnauthorized)
+			return
 		}
 		c.Next()
 	}
