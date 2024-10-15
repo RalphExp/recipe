@@ -79,6 +79,8 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Set("username", user.Username)
 	session.Set("token", sessionToken)
+
+	// write to redis and HTTP response
 	session.Save()
 
 	c.JSON(http.StatusOK, gin.H{"message": "User signed in"})
@@ -107,6 +109,8 @@ func (handler *AuthHandler) RefreshHandler(c *gin.Context) {
 	sessionToken = xid.New().String()
 	session.Set("username", sessionUser.(string))
 	session.Set("token", sessionToken)
+
+	// write to redis and HTTP response
 	session.Save()
 
 	c.JSON(http.StatusOK, gin.H{"message": "New session issued"})
@@ -128,7 +132,16 @@ func (handler *AuthHandler) SignOutHandler(c *gin.Context) {
 
 func (handler *AuthHandler) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// return a session.Session interface (which is sesssions.session object)
 		session := sessions.Default(c)
+		// check if gin.Context has sessions.Session object, if not
+		// 1) call session.store.Get(s.request, s.name) to get the Session Object
+		// then assign the session object to a Session interface
+
+		// for detail, see redistore.go:
+		// func (s *RediStore) Get(r *http.Request, name string) (*sessions.Session, error)
+
+		// 2) call session.Get("token"), get data from map
 		sessionToken := session.Get("token")
 		if sessionToken == nil {
 			c.JSON(http.StatusForbidden, gin.H{

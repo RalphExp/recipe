@@ -68,6 +68,12 @@ func main() {
 	router := gin.Default()
 
 	store, _ := redisStore.NewStore(10, "tcp", "localhost:6379", "", []byte("secret"))
+
+	// Use attaches a global middleware to the router. ie. the middleware attached though Use() will be
+	// included in the handlers chain for every single request. Even 404, 405, static files...
+	// For example, this is the right place for a logger or error management middleware.
+
+	// set a session object into gin.Context (when a request is made)
 	router.Use(sessions.Sessions("recipes_api", store))
 
 	router.GET("/recipes", recipesHandler.ListRecipesHandler)
