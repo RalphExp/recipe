@@ -1,4 +1,4 @@
-module github.com/mlabouardy/recipes-api
+module github.com/ralphexp/recipes-auth0
 
 go 1.15
 

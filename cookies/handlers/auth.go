@@ -135,11 +135,11 @@ func (handler *AuthHandler) AuthMiddleware() gin.HandlerFunc {
 		// return a session.Session interface (which is sesssions.session object)
 		session := sessions.Default(c)
 		// check if gin.Context has sessions.Session object, if not
-		// 1) call session.store.Get(s.request, s.name) to get the Session Object
+		// 1) call session.store.Get(s.request, "recipes_api") to get the Session Object
 		// then assign the session object to a Session interface
 
 		// for detail, see redistore.go:
-		// func (s *RediStore) Get(r *http.Request, name string) (*sessions.Session, error)
+		// func (s *RediStore) Get(r *http.Request, "recipes_api") (*sessions.Session, error)
 
 		// 2) call session.Get("token"), get data from map
 		sessionToken := session.Get("token")

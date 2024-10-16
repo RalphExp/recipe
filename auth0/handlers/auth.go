@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -26,6 +27,8 @@ func NewAuthHandler(ctx context.Context, collection *mongo.Collection) *AuthHand
 func (handler *AuthHandler) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var auth0Domain = "https://" + os.Getenv("AUTH0_DOMAIN") + "/"
+		fmt.Printf("domain: %v, ident: %v\n", auth0Domain, os.Getenv("AUTH0_API_IDENTIFIER"))
+
 		client := auth0.NewJWKClient(auth0.JWKClientOptions{URI: auth0Domain + ".well-known/jwks.json"}, nil)
 		configuration := auth0.NewConfiguration(client, []string{os.Getenv("AUTH0_API_IDENTIFIER")}, auth0Domain, jose.RS256)
 		validator := auth0.NewValidator(configuration, nil)
