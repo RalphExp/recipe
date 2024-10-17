@@ -1,6 +1,6 @@
 // Recipes API
 //
-// This is a sample recipes API. You can find out more about the API at https://github.com/PacktPublishing/Building-Distributed-Applications-in-Gin.
+// This is a sample recipes API. I modified the examples from https://github.com/PacktPublishing/Building-Distributed-Applications-in-Gin.
 //
 //		Schemes: http
 //	 Host: localhost:8080
@@ -19,7 +19,9 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -33,7 +35,9 @@ import (
 var authHandler *handlers.AuthHandler
 var recipesHandler *handlers.RecipesHandler
 
-func init() {
+const templatesPath = "templates/"
+
+func initDB() {
 	ctx := context.Background()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	if err = client.Ping(context.TODO(), readpref.Primary()); err != nil {
@@ -52,17 +56,36 @@ func init() {
 	log.Println(status)
 
 	recipesHandler = handlers.NewRecipesHandler(ctx, collectionRecipes, redisClient)
-
 	collectionUsers := client.Database(os.Getenv("MONGO_DATABASE")).Collection("users")
 	authHandler = handlers.NewAuthHandler(ctx, collectionUsers)
 }
 
+func init() {
+	initDB()
+}
+
+func StaticHandler(c *gin.Context) {
+	filepath := c.Param("filepath")
+	// fmt.Printf("filepath: %s\n", filepath)
+	data, _ := ioutil.ReadFile("assets" + filepath)
+	c.Writer.Write(data)
+}
+
 func main() {
 	router := gin.Default()
+	router.LoadHTMLGlob(templatesPath + "/*")
+
+	router.GET("/login", authHandler.LoginHandler)
 	router.POST("/signin", authHandler.SignInHandler)
 	router.POST("/refresh", authHandler.RefreshHandler)
+	router.GET("/assets/*filepath", StaticHandler)
 
-	authorized := router.Group("/api/v1")
+	// add authorization of the main page
+	authorized := router.Group("/")
+	authorized.Use(authHandler.AuthMiddleware())
+	authorized.GET("/", recipesHandler.IndexHandler)
+
+	authorized = router.Group("/api/v1")
 	authorized.Use(authHandler.AuthMiddleware())
 	{
 		authorized.GET("/recipes", recipesHandler.ListRecipesHandler)
@@ -72,5 +95,8 @@ func main() {
 		authorized.GET("/recipes/:id", recipesHandler.GetOneRecipeHandler)
 	}
 
+	router.NoRoute(func(c *gin.Context) {
+		c.HTML(http.StatusNotFound, "404.html", nil)
+	})
 	router.Run()
 }

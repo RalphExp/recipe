@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -39,12 +40,18 @@ func NewAuthHandler(ctx context.Context, collection *mongo.Collection) *AuthHand
 	}
 }
 
+func (handler *AuthHandler) LoginHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "login.tmpl", gin.H{})
+}
+
 func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	// if err := c.ShouldBindJSON(&user); err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 	return
+	// }
+	user.Username = c.PostForm("name")
+	user.Password = c.PostForm("password")
 
 	h := sha256.New()
 	io.Copy(h, strings.NewReader(user.Password))
@@ -54,7 +61,6 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
 		"username": user.Username,
 		"password": sha256sum,
-		// "password": user.Password,
 	})
 	if cur.Err() != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
@@ -76,11 +82,8 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 		return
 	}
 
-	jwtOutput := JWTOutput{
-		Token:   tokenString,
-		Expires: expirationTime,
-	}
-	c.JSON(http.StatusOK, jwtOutput)
+	c.SetCookie("recipes", tokenString, int(time.Minute)*60, "/", "localhost", false, true)
+	c.Redirect(301, "/")
 }
 
 func (handler *AuthHandler) RefreshHandler(c *gin.Context) {
@@ -103,7 +106,7 @@ func (handler *AuthHandler) RefreshHandler(c *gin.Context) {
 		return
 	}
 
-	expirationTime := time.Now().Add(30 * time.Minute)
+	expirationTime := time.Now().Add(60 * time.Minute)
 	claims.ExpiresAt = expirationTime.Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(os.Getenv("JWT_SECRET"))
@@ -112,29 +115,58 @@ func (handler *AuthHandler) RefreshHandler(c *gin.Context) {
 		return
 	}
 
-	jwtOutput := JWTOutput{
-		Token:   tokenString,
-		Expires: expirationTime,
-	}
-	c.JSON(http.StatusOK, jwtOutput)
+	c.SetCookie("recipes", tokenString, int(time.Minute)*60, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, "")
 }
 
+// cookie version
 func (handler *AuthHandler) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenValue := c.GetHeader("Authorization")
+		tokenValue, err := c.Cookie("recipes")
+		if err != nil {
+			fmt.Printf("error: %v\n", err.Error())
+			c.Redirect(301, "/login")
+			return
+		}
 		claims := &Claims{}
-
 		tkn, err := jwt.ParseWithClaims(tokenValue, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
 		if err != nil {
-			c.AbortWithStatus(http.StatusUnauthorized)
+			fmt.Printf("error: %v\n", err.Error())
+			c.Redirect(301, "/login")
 			return
 		}
 		if !tkn.Valid {
-			c.AbortWithStatus(http.StatusUnauthorized)
+			c.Redirect(301, "/login")
 			return
 		}
 		c.Next()
 	}
 }
+
+// func (handler *AuthHandler) AuthMiddleware() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		tokenValue := c.GetHeader("Authorization")
+// 		claims := &Claims{}
+
+// 		tkn, err := jwt.ParseWithClaims(tokenValue, claims, func(token *jwt.Token) (interface{}, error) {
+// 			return []byte(os.Getenv("JWT_SECRET")), nil
+// 		})
+// 		if err != nil {
+// 			fmt.Printf("error: %v\n", err.Error())
+// 			// unauthorized, redirect to login page
+// 			c.Redirect(301, "/login")
+// 			// c.AbortWithStatus(http.StatusUnauthorized)
+// 			return
+// 		}
+// 		if !tkn.Valid {
+// 			fmt.Printf("error: %v\n", err.Error())
+// 			// unauthorized, redirect to login page
+// 			// c.AbortWithStatus(http.StatusUnauthorized)
+// 			c.Redirect(301, "/login")
+// 			return
+// 		}
+// 		c.Next()
+// 	}
+// }

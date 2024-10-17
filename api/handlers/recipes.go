@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -29,23 +30,13 @@ func NewRecipesHandler(ctx context.Context, collection *mongo.Collection, redisC
 	}
 }
 
-// swagger:operation GET /api/v1/recipes recipes listRecipes
-// Returns list of recipes
-// ---
-// produces:
-// - application/json
-// responses:
-//
-//	'200':
-//	    description: Successful operation
-func (handler *RecipesHandler) ListRecipesHandler(c *gin.Context) {
+func (handler *RecipesHandler) getRecipes(c *gin.Context) ([]models.Recipe, error) {
 	val, err := handler.redisClient.Get("recipes").Result()
 	if err == redis.Nil {
 		log.Printf("Request to MongoDB")
 		cur, err := handler.collection.Find(handler.ctx, bson.M{})
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+			return nil, err
 		}
 		defer cur.Close(handler.ctx)
 
@@ -58,15 +49,51 @@ func (handler *RecipesHandler) ListRecipesHandler(c *gin.Context) {
 
 		data, _ := json.Marshal(recipes)
 		handler.redisClient.Set("recipes", string(data), 0)
-		c.JSON(http.StatusOK, recipes)
+		return recipes, nil
 	} else if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return nil, err
 	} else {
 		log.Printf("Request to Redis")
 		recipes := make([]models.Recipe, 0)
 		json.Unmarshal([]byte(val), &recipes)
+		return recipes, nil
+	}
+}
+
+// swagger:operation GET /index recipes listRecipes
+// Returns the web page of recipes
+// ---
+// produces:
+// - application/html
+// responses:
+//
+//	'200':
+//	    description: Successful operation
+func (handler *RecipesHandler) IndexHandler(c *gin.Context) {
+	recipes, err := handler.getRecipes(c)
+	if recipes != nil {
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{"recipes": recipes})
+	} else {
+		c.HTML(http.StatusInternalServerError, "404.html", gin.H{"error": err.Error()})
+	}
+}
+
+// swagger:operation GET /api/v1/recipes recipes listRecipes
+// Returns list of recipes
+// ---
+// produces:
+// - application/json
+// responses:
+//
+//	'200':
+//	    description: Successful operation
+func (handler *RecipesHandler) ListRecipesHandler(c *gin.Context) {
+	recipes, err := handler.getRecipes(c)
+	if recipes != nil {
 		c.JSON(http.StatusOK, recipes)
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 }
 
@@ -135,9 +162,9 @@ func (handler *RecipesHandler) UpdateRecipeHandler(c *gin.Context) {
 		"_id": objectId,
 	}, bson.D{{"$set", bson.D{
 		{"name", recipe.Name},
-		{"instructions", recipe.Instructions},
+		{"steps", recipe.Steps},
 		{"ingredients", recipe.Ingredients},
-		{"tags", recipe.Tags},
+		{"imageURL", recipe.ImageURL},
 	}}})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -196,18 +223,20 @@ func (handler *RecipesHandler) DeleteRecipeHandler(c *gin.Context) {
 //	    description: Successful operation
 func (handler *RecipesHandler) GetOneRecipeHandler(c *gin.Context) {
 	id := c.Param("id")
-	objectId, _ := primitive.ObjectIDFromHex(id)
+	fmt.Printf("id = %s\n", id)
+	// objectId, _ := primitive.ObjectIDFromHex(id)
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
-		"_id": objectId,
+		"_id": id,
 	})
 	var recipe models.Recipe
 	err := cur.Decode(&recipe)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Printf("error: %s\n", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
 
-	c.JSON(http.StatusOK, recipe)
+	c.HTML(http.StatusOK, "recipe.tmpl", gin.H{"recipe": recipe})
 }
 
 // swagger:operation GET /api/v1/recipes/search recipes findRecipe

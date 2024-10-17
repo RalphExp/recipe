@@ -135,9 +135,9 @@ func (handler *RecipesHandler) UpdateRecipeHandler(c *gin.Context) {
 		"_id": objectId,
 	}, bson.D{{"$set", bson.D{
 		{"name", recipe.Name},
-		{"instructions", recipe.Instructions},
+		{"steps", recipe.Steps},
 		{"ingredients", recipe.Ingredients},
-		{"tags", recipe.Tags},
+		{"imageURL", recipe.ImageURL},
 	}}})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

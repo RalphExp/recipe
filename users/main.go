@@ -19,12 +19,19 @@ import (
 
 type Recipe struct {
 	//swagger:ignore
-	ID           string    `json:"id" bson:"_id"`
-	Name         string    `json:"name" bson:"name"`
-	Tags         []string  `json:"tags" bson:"tags"`
-	Ingredients  []string  `json:"ingredients" bson:"ingredients"`
-	Instructions []string  `json:"instructions" bson:"instructions"`
-	PublishedAt  time.Time `json:"publishedAt" bson:"publishedAt"`
+	ID          string       `json:"id" bson:"_id"`
+	Name        string       `json:"name" bson:"name"`
+	Tags        []string     `json:"tags" bson:"tags"`
+	Ingredients []Ingredient `json:"ingredients" bson:"ingredients"`
+	Steps       []string     `json:"steps" bson:"steps"`
+	PublishedAt time.Time    `json:"publishedAt" bson:"publishedAt"`
+	Picture     string       `json:"imageURL" bson:"imageURL"`
+}
+
+type Ingredient struct {
+	Quantity string `json:"quantity" bson:"quantity"`
+	Name     string `json:"name" bson:"name"`
+	Type     string `json:"type" bson:"type"`
 }
 
 func main() {
@@ -72,6 +79,7 @@ func main() {
 
 	var listOfRecipes []interface{}
 	for _, recipe := range recipes {
+		recipe.PublishedAt = time.Now()
 		listOfRecipes = append(listOfRecipes, recipe)
 	}
 	insertManyResult, err := collection.InsertMany(ctx, listOfRecipes)
