@@ -3,7 +3,7 @@ if [ "$#" != 1 ]; then
   exit 1
 fi
 
-curl -v --location --request POST 'http://localhost:8080/recipes' \
+curl -v --location --request POST 'http://localhost:8080/api/v1/recipes' \
     --header 'Content-Type: application/json' \
     --header 'Authorization: '"$1" \
     --data-raw '{

@@ -29,7 +29,7 @@ func NewRecipesHandler(ctx context.Context, collection *mongo.Collection, redisC
 	}
 }
 
-// swagger:operation GET /recipes recipes listRecipes
+// swagger:operation GET /api/v1/recipes recipes listRecipes
 // Returns list of recipes
 // ---
 // produces:
@@ -70,7 +70,7 @@ func (handler *RecipesHandler) ListRecipesHandler(c *gin.Context) {
 	}
 }
 
-// swagger:operation POST /recipes recipes newRecipe
+// swagger:operation POST /api/v1/recipes recipes newRecipe
 // Create a new recipe
 // ---
 // produces:
@@ -102,7 +102,7 @@ func (handler *RecipesHandler) NewRecipeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, recipe)
 }
 
-// swagger:operation PUT /recipes/{id} recipes updateRecipe
+// swagger:operation PUT /api/v1/recipes/{id} recipes updateRecipe
 // Update an existing recipe
 // ---
 // parameters:
@@ -147,7 +147,7 @@ func (handler *RecipesHandler) UpdateRecipeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Recipe has been updated"})
 }
 
-// swagger:operation DELETE /recipes/{id} recipes deleteRecipe
+// swagger:operation DELETE /api/v1/recipes/{id} recipes deleteRecipe
 // Delete an existing recipe
 // ---
 // produces:
@@ -178,7 +178,7 @@ func (handler *RecipesHandler) DeleteRecipeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Recipe has been deleted"})
 }
 
-// swagger:operation GET /recipes/{id} recipes
+// swagger:operation GET /api/v1/recipes/{id} recipes
 // Get one recipe
 // ---
 // produces:
@@ -210,7 +210,7 @@ func (handler *RecipesHandler) GetOneRecipeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, recipe)
 }
 
-// swagger:operation GET /recipes/search recipes findRecipe
+// swagger:operation GET /api/v1/recipes/search recipes findRecipe
 // Search recipes based on tags
 // ---
 // produces:

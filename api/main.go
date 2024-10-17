@@ -59,13 +59,13 @@ func init() {
 
 func main() {
 	router := gin.Default()
-	router.GET("/recipes", recipesHandler.ListRecipesHandler)
 	router.POST("/signin", authHandler.SignInHandler)
 	router.POST("/refresh", authHandler.RefreshHandler)
 
-	authorized := router.Group("/")
+	authorized := router.Group("/api/v1")
 	authorized.Use(authHandler.AuthMiddleware())
 	{
+		authorized.GET("/recipes", recipesHandler.ListRecipesHandler)
 		authorized.POST("/recipes", recipesHandler.NewRecipeHandler)
 		authorized.PUT("/recipes/:id", recipesHandler.UpdateRecipeHandler)
 		authorized.DELETE("/recipes/:id", recipesHandler.DeleteRecipeHandler)
