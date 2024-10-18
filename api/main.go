@@ -35,7 +35,7 @@ import (
 var authHandler *handlers.AuthHandler
 var recipesHandler *handlers.RecipesHandler
 
-const templatesPath = "templates/"
+const templatesPath = "templates"
 
 func initDB() {
 	ctx := context.Background()
@@ -47,7 +47,7 @@ func initDB() {
 	collectionRecipes := client.Database(os.Getenv("MONGO_DATABASE")).Collection("recipes")
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     os.Getenv("REDIS_URI"),
 		Password: "",
 		DB:       0,
 	})
