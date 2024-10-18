@@ -29,8 +29,8 @@ jobs:
             #golint ./...
       - run:
           name: Unit tests
-          command: | 
-            (cd api && go test -v ./...)
+          command: |
+            # (cd api && go test -v ./...)
             exit 1
 
 workflows:
