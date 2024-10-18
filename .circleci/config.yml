@@ -5,7 +5,7 @@ orbs:
 executors:
   environment:
     docker:
-      - image: circleci/golang:1.15.6
+      - image: golang:1.15.6
     # working_directory: /go/src/github.com/ralphexp/recipes-api
     working_directory: api
 
