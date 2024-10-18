@@ -71,7 +71,7 @@ func StaticHandler(c *gin.Context) {
 	c.Writer.Write(data)
 }
 
-func main() {
+func SetupServer() *gin.Engine {
 	router := gin.Default()
 	router.LoadHTMLGlob(templatesPath + "/*")
 
@@ -83,7 +83,9 @@ func main() {
 	// add authorization of the main page
 	authorized := router.Group("/")
 	authorized.Use(authHandler.AuthMiddleware())
-	authorized.GET("/", recipesHandler.IndexHandler)
+	{
+		authorized.GET("/", recipesHandler.IndexHandler)
+	}
 
 	authorized = router.Group("/api/v1")
 	authorized.Use(authHandler.AuthMiddleware())
@@ -94,9 +96,13 @@ func main() {
 		authorized.DELETE("/recipes/:id", recipesHandler.DeleteRecipeHandler)
 		authorized.GET("/recipes/:id", recipesHandler.GetOneRecipeHandler)
 	}
-
 	router.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusNotFound, "404.html", nil)
 	})
+	return router
+}
+
+func main() {
+	router := SetupServer()
 	router.Run()
 }

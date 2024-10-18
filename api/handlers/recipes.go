@@ -156,15 +156,19 @@ func (handler *RecipesHandler) UpdateRecipeHandler(c *gin.Context) {
 		return
 	}
 
-	objectId, _ := primitive.ObjectIDFromHex(id)
-	_, err := handler.collection.UpdateOne(handler.ctx, bson.M{
-		"_id": objectId,
+	res, err := handler.collection.UpdateOne(handler.ctx, bson.M{
+		"_id": id,
 	}, bson.D{{"$set", bson.D{
 		{"name", recipe.Name},
 		{"steps", recipe.Steps},
 		{"ingredients", recipe.Ingredients},
 		{"imageURL", recipe.ImageURL},
 	}}})
+
+	if res.MatchedCount == 0 {
+		c.JSON(http.StatusOK, gin.H{"message": "No match recipe"})
+		return
+	}
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -194,9 +198,8 @@ func (handler *RecipesHandler) UpdateRecipeHandler(c *gin.Context) {
 //	    description: Invalid recipe ID
 func (handler *RecipesHandler) DeleteRecipeHandler(c *gin.Context) {
 	id := c.Param("id")
-	objectId, _ := primitive.ObjectIDFromHex(id)
 	_, err := handler.collection.DeleteOne(handler.ctx, bson.M{
-		"_id": objectId,
+		"_id": id,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
