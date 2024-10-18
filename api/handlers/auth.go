@@ -74,7 +74,7 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	}
 
 	c.SetCookie("recipes", tokenString, int(time.Minute)*60, "/", "localhost", false, true)
-	c.Redirect(301, "/")
+	c.Redirect(302, "/")
 }
 
 func (handler *AuthHandler) RefreshHandler(c *gin.Context) {
@@ -116,7 +116,7 @@ func (handler *AuthHandler) AuthMiddleware() gin.HandlerFunc {
 		tokenValue, err := c.Cookie("recipes")
 		if err != nil {
 			fmt.Printf("error: %v\n", err.Error())
-			c.Redirect(301, "/login")
+			c.Redirect(302, "/login")
 			return
 		}
 		claims := &Claims{}
@@ -125,11 +125,11 @@ func (handler *AuthHandler) AuthMiddleware() gin.HandlerFunc {
 		})
 		if err != nil {
 			fmt.Printf("error: %v\n", err.Error())
-			c.Redirect(301, "/login")
+			c.Redirect(302, "/login")
 			return
 		}
 		if !tkn.Valid {
-			c.Redirect(301, "/login")
+			c.Redirect(302, "/login")
 			return
 		}
 		c.Next()

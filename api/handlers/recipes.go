@@ -115,7 +115,9 @@ func (handler *RecipesHandler) NewRecipeHandler(c *gin.Context) {
 		return
 	}
 
-	recipe.ID = primitive.NewObjectID().Hex()
+	if recipe.ID == "" {
+		recipe.ID = primitive.NewObjectID().Hex()
+	}
 	recipe.PublishedAt = time.Now()
 	_, err := handler.collection.InsertOne(handler.ctx, recipe)
 	if err != nil {
@@ -159,14 +161,17 @@ func (handler *RecipesHandler) UpdateRecipeHandler(c *gin.Context) {
 	res, err := handler.collection.UpdateOne(handler.ctx, bson.M{
 		"_id": id,
 	}, bson.D{{"$set", bson.D{
+		{"_id", id},
 		{"name", recipe.Name},
 		{"steps", recipe.Steps},
 		{"ingredients", recipe.Ingredients},
 		{"imageURL", recipe.ImageURL},
 	}}})
 
+	fmt.Printf("%v\n", res)
+
 	if res.MatchedCount == 0 {
-		c.JSON(http.StatusOK, gin.H{"message": "No match recipe"})
+		c.JSON(http.StatusOK, gin.H{"message": "Recipe not found"})
 		return
 	}
 
@@ -198,14 +203,18 @@ func (handler *RecipesHandler) UpdateRecipeHandler(c *gin.Context) {
 //	    description: Invalid recipe ID
 func (handler *RecipesHandler) DeleteRecipeHandler(c *gin.Context) {
 	id := c.Param("id")
-	_, err := handler.collection.DeleteOne(handler.ctx, bson.M{
+	res, err := handler.collection.DeleteOne(handler.ctx, bson.M{
 		"_id": id,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Recipe has been deleted"})
+	if res.DeletedCount > 0 {
+		c.JSON(http.StatusOK, gin.H{"message": "Recipe has been deleted"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"message": "Recipe not found"})
+	}
 }
 
 // swagger:operation GET /api/v1/recipes/{id} recipes
