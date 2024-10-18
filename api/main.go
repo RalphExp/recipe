@@ -67,7 +67,7 @@ func init() {
 func StaticHandler(c *gin.Context) {
 	filepath := c.Param("filepath")
 	// fmt.Printf("filepath: %s\n", filepath)
-	data, _ := ioutil.ReadFile("assets" + filepath)
+	data, _ := ioutil.ReadFile("assets/" + filepath)
 	c.Writer.Write(data)
 }
 
