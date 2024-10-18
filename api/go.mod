@@ -9,7 +9,7 @@ require (
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/onsi/ginkgo v1.14.2 // indirect
 	github.com/onsi/gomega v1.10.4 // indirect
+	github.com/stretchr/testify v1.6.1
 	go.mongodb.org/mongo-driver v1.4.5
 	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb
-	// github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 )

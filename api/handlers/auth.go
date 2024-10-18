@@ -28,11 +28,6 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-type JWTOutput struct {
-	Token   string    `json:"token"`
-	Expires time.Time `json:"expires"`
-}
-
 func NewAuthHandler(ctx context.Context, collection *mongo.Collection) *AuthHandler {
 	return &AuthHandler{
 		collection: collection,
@@ -46,10 +41,6 @@ func (handler *AuthHandler) LoginHandler(c *gin.Context) {
 
 func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	var user models.User
-	// if err := c.ShouldBindJSON(&user); err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	// 	return
-	// }
 	user.Username = c.PostForm("name")
 	user.Password = c.PostForm("password")
 
@@ -144,29 +135,3 @@ func (handler *AuthHandler) AuthMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
-// func (handler *AuthHandler) AuthMiddleware() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		tokenValue := c.GetHeader("Authorization")
-// 		claims := &Claims{}
-
-// 		tkn, err := jwt.ParseWithClaims(tokenValue, claims, func(token *jwt.Token) (interface{}, error) {
-// 			return []byte(os.Getenv("JWT_SECRET")), nil
-// 		})
-// 		if err != nil {
-// 			fmt.Printf("error: %v\n", err.Error())
-// 			// unauthorized, redirect to login page
-// 			c.Redirect(301, "/login")
-// 			// c.AbortWithStatus(http.StatusUnauthorized)
-// 			return
-// 		}
-// 		if !tkn.Valid {
-// 			fmt.Printf("error: %v\n", err.Error())
-// 			// unauthorized, redirect to login page
-// 			// c.AbortWithStatus(http.StatusUnauthorized)
-// 			c.Redirect(301, "/login")
-// 			return
-// 		}
-// 		c.Next()
-// 	}
-// }

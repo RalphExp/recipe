@@ -125,7 +125,6 @@ func (handler *RecipesHandler) NewRecipeHandler(c *gin.Context) {
 
 	log.Println("Remove data from Redis")
 	handler.redisClient.Del("recipes")
-
 	c.JSON(http.StatusOK, recipe)
 }
 
@@ -166,6 +165,7 @@ func (handler *RecipesHandler) UpdateRecipeHandler(c *gin.Context) {
 		{"ingredients", recipe.Ingredients},
 		{"imageURL", recipe.ImageURL},
 	}}})
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -235,39 +235,5 @@ func (handler *RecipesHandler) GetOneRecipeHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
-
 	c.HTML(http.StatusOK, "recipe.tmpl", gin.H{"recipe": recipe})
 }
-
-// swagger:operation GET /api/v1/recipes/search recipes findRecipe
-// Search recipes based on tags
-// ---
-// produces:
-// - application/json
-// parameters:
-//   - name: tag
-//     in: query
-//     description: recipe tag
-//     required: true
-//     type: string
-// responses:
-//     '200':
-//         description: Successful operation
-/*func SearchRecipesHandler(c *gin.Context) {
-	tag := c.Query("tag")
-	listOfRecipes := make([]Recipe, 0)
-
-	for i := 0; i < len(recipes); i++ {
-		found := false
-		for _, t := range recipes[i].Tags {
-			if strings.EqualFold(t, tag) {
-				found = true
-			}
-		}
-		if found {
-			listOfRecipes = append(listOfRecipes, recipes[i])
-		}
-	}
-
-	c.JSON(http.StatusOK, listOfRecipes)
-}*/
