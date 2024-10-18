@@ -5,7 +5,7 @@ executors:
     docker:
       - image: golang:1.15
     # working_directory: /go/src/github.com/ralphexp/recipes-api
-    working_directory: /go/src/github.com/ralphexp/recipes-api/api
+    working_directory: api
 
 jobs:
   test:
