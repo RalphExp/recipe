@@ -33,17 +33,19 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
 
-  # nginx:
-  #   image: nginx
-  #   ports:
-  #     - 8080:80
-  #   volumes:
-  #     - $PWD/nginx.conf:/etc/nginx/nginx.conf
-  #   depends_on:
-  #     - api
-  #     - dashboard
-  #   networks:
-  #     - api_network
+# we don't have a domain name, but we can add 
+# nginx as the reverse proxy, so we can use cookies
+  nginx:
+    image: nginx
+    ports:
+      - 8080:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - api
+  #   - dashboard
+    networks:
+      - recipes_network
 
 networks:
   recipes_network:
