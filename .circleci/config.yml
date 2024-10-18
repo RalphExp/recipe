@@ -33,7 +33,7 @@ jobs:
             go test -v ./...
             exit 1
 
-  workflows:
-    ci_cd:
-      jobs:
-        - test
+workflows:
+  ci_cd:
+    jobs:
+      - test
