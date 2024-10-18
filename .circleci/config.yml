@@ -29,8 +29,18 @@ jobs:
       - run:
           name: Unit tests
           command: |
-            # (cd api && go test -v ./...)
+            docker run -d --name redis -p 6379:6379 redis:6.0
+            docker run -d --name mongodb -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password -p 27017:27017 mongod
+            cd api && go test -v ./...
+            if [ $? != 0 ]; then
+              cd .
+              exit 1
+            fi
+            docker stop redis mongodb
+            cd .
             exit 0
+  
+  build:
 
 workflows:
   ci_cd:
