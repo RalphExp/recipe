@@ -1,5 +1,5 @@
 export JWT_SECRET=eUbP9shywUygMx7u
-export  MONGO_URI="mongodb://admin:password@localhost:27017/test?authSource=admin" 
+export MONGO_URI="mongodb://admin:password@localhost:27017/test?authSource=admin" 
 export MONGO_DATABASE=demo
 
 PWD=$(pwd)
