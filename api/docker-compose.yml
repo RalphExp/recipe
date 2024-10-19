@@ -2,11 +2,12 @@ version: "3.9"
 
 services:
   api:
-    image: api
+    image: 390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:latest
     environment:
       - MONGO_URI=mongodb://admin:password@mongodb:27017/test?authSource=admin&readPreference=primary&ssl=false
       - MONGO_DATABASE=demo
       # when testing on the local machine, set DOMAIN=localhost
+      # - DOMAIN=localhost
       - DOMAIN=ec2-18-223-97-1.us-east-2.compute.amazonaws.com
       - REDIS_URI=redis:6379
     networks:
