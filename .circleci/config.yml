@@ -1,0 +1,53 @@
+version: 2.1
+
+executors:
+  environment:
+    docker:
+      - image: golang:1.22
+    working_directory:
+
+jobs:
+  test:
+    executor: environment
+    steps:
+      - checkout 
+      - restore_cache:
+          keys:
+            - go-mod-v4-{{ checksum "api/go.sum" }}
+      - run:
+          name: Install Dependencies
+          command: (cd api && go mod download)
+      - save_cache:
+          key: go-mod-v4-{{ checksum "api/go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+      - run:
+          name: Code linting
+          command: >
+            (cd api && go get -u golang.org/x/lint/golint)
+            #golint ./...
+      - run:
+          name: Unit tests
+          command: |
+            # docker run -d --name redis -p 6379:6379 redis:6.0
+            # docker run -d --name mongodb -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password -p 27017:27017 mongod
+            # cd api && go test -v ./...
+            exit 0
+  
+  build:
+    executor: environment
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 1.6.21
+      - run:
+          name: Build Image
+          command: >
+            TAG=0.1.$CIRCLE_BUILD_NUM
+            docker build -t USER/recipes-api:$TAG .
+
+workflows:
+  ci_cd:
+    jobs:
+      - test
+      - build

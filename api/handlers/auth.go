@@ -73,7 +73,7 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("recipes", tokenString, int(time.Minute)*60, "/", "localhost", false, true)
+	c.SetCookie("recipes", tokenString, int(time.Minute)*60, "/", os.Getenv("DOMAIN"), false, true)
 	c.Redirect(302, "/")
 }
 
@@ -106,7 +106,7 @@ func (handler *AuthHandler) RefreshHandler(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("recipes", tokenString, int(time.Minute)*60, "/", "localhost", false, true)
+	c.SetCookie("recipes", tokenString, int(time.Minute)*60, "/", os.Getenv("DOMAIN"), false, true)
 	c.JSON(http.StatusOK, "")
 }
 
