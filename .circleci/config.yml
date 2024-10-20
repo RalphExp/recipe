@@ -1,8 +1,7 @@
 version: 2.1
 
 executors:
-  environment:  
-    TAG: "0.1.${CIRCLE_BUILD_NUM}"
+  environment:
     docker:
       - image: circleci/golang:1.15
     working_directory:
@@ -47,7 +46,8 @@ jobs:
             docker build -t ralphexp/webapp:${TAG} .
       - run:
           name: Push image
-          command: >
+          command: >  
+            TAG="0.1.${CIRCLE_BUILD_NUM}"
             docker tag ralphexp/webapp:$TAG
               390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:$TAG
             docker tag ralphexp/webapp:$TAG
