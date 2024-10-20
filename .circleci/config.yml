@@ -68,9 +68,9 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Deploy with Docker Compose
-        command: |
-          ssh -oStrictHostKeyChecking=no ubuntu@${AWS_IPADDRESS} docker-compose pull && docker-compose up -d
+          name: Deploy with Docker Compose
+          command: |
+            ssh -oStrictHostKeyChecking=no ubuntu@${AWS_IPADDRESS} docker-compose pull && docker-compose up -d
 
 workflows:
   ci_cd:
