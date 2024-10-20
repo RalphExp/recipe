@@ -3,7 +3,7 @@ version: 2.1
 executors:
   environment:
     docker:
-      - image: golang:1.22
+      - image: circleci/golang:1.15
     working_directory:
 
 jobs:
@@ -24,17 +24,48 @@ jobs:
       - run:
           name: Code linting
           command: >
-            (cd api && go get -u golang.org/x/lint/golint)
-            #golint ./...
+            # ( cd api; go get -u golang.org/x/lint/golint )
+            # golint ./...
       - run:
           name: Unit tests
           command: |
-            # docker run -d --name redis -p 6379:6379 redis:6.0
-            # docker run -d --name mongodb -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password -p 27017:27017 mongod
             # cd api && go test -v ./...
             exit 0
+
+  build:
+    executor: environment
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true      
+      - run:          
+          name: Install AWS CLI
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y unzip
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Login to ECR
+          command: |
+            echo "aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com;"
+            aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+      - run:
+          name: Build image
+          command: >
+            ( cd api && docker build -t ralphexp/webapp:latest . )
+      - run:
+          name: Push image
+          command: >
+            ( cd api; 
+              docker tag ralphexp/webapp:latest ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:latest;
+              docker tag ralphexp/webapp:latest ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:develop;
+              docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/ralphexp/webapp:latest ;
+              docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/ralphexp/webapp:develop )
 
 workflows:
   ci_cd:
     jobs:
       - test
+      - build

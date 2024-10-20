@@ -18,7 +18,7 @@ services:
     scale: 2
 
   redis:
-    image: redis
+    image: redis:6.0
     networks:
       - recipes_network
     ports:
