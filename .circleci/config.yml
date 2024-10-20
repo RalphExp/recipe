@@ -24,13 +24,11 @@ jobs:
       - run:
           name: Code linting
           command: >
-            # (cd api && go get -u golang.org/x/lint/golint)
+            # ( cd api; go get -u golang.org/x/lint/golint )
             # golint ./...
       - run:
           name: Unit tests
           command: |
-            # docker run -d --name redis -p 6379:6379 redis:6.0
-            # docker run -d --name mongodb -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password -p 27017:27017 mongod
             # cd api && go test -v ./...
             exit 0
 
@@ -39,18 +37,30 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true
+          docker_layer_caching: true      
+      - run:          
+          name: Install AWS CLI
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y awscli
+      - run:
+          name: Login to ECR
+          command: |
+            echo $AWS_SECRET_ACCESS_KEY | 
+              aws ecr get-login-password --region $AWS_DEFAULT_REGION | 
+              docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
       - run:
           name: Build image
           command: >
-            (cd api && docker build -t ralphexp/webapp:latest . )
+            ( cd api && docker build -t ralphexp/webapp:latest . )
       - run:
           name: Push image
           command: >
-            ( cd api && docker tag ralphexp/webapp:latest 390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:latest ) ;
-            ( cd api && docker tag ralphexp/webapp:latest 390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:develop ) ;
-            ( cd api && docker push 390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:latest ) ;
-            ( cd api && docker push 390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:develop )
+            ( cd api; 
+              docker tag ralphexp/webapp:latest ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:latest;
+              docker tag ralphexp/webapp:latest ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:develop;
+              docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/ralphexp/webapp:latest ;
+              docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/ralphexp/webapp:develop )
 
 workflows:
   ci_cd:
