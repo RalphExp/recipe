@@ -37,7 +37,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true      
+          docker_layer_caching: true  
       - run:          
           name: Install AWS CLI
           command: |
@@ -71,11 +71,17 @@ jobs:
       - run:
           name: Deploy with Docker Compose
           command: |
+            ssh -oStrictHostKeyChecking=no ubuntu@${AWS_IPADDRESS} aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
             ssh -oStrictHostKeyChecking=no ubuntu@${AWS_IPADDRESS} docker-compose pull && docker-compose up -d
 
 workflows:
   ci_cd:
     jobs:
       - test
-      - build
-      - deploy
+      - build:
+        requires:
+          test  
+      - deploy:
+        requires:
+          test
+          build
