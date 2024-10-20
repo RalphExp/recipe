@@ -1,7 +1,8 @@
 version: 2.1
 
 executors:
-  environment:
+  environment:  
+    TAG: "0.1.${CIRCLE_BUILD_NUM}"
     docker:
       - image: circleci/golang:1.15
     working_directory:
@@ -43,8 +44,6 @@ jobs:
       - run:
           name: Build image
           command: >
-            TAG=0.1.${CIRCLE_BUILD_NUM}
-            echo docker build -t ralphexp/webapp:${TAG} .
             docker build -t ralphexp/webapp:${TAG} .
       - run:
           name: Push image
