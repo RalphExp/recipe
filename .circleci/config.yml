@@ -47,14 +47,10 @@ jobs:
       - run:
           name: Push image
           command: >
-            ( cd api && docker tag ralphexp/webapp:latest
-              390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:latest )
-            ( cd api && docker tag ralphexp/webapp:latest
-              390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:develop )
-            ( cd api && docker push 
-              390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:latest )
-            ( cd api && docker push 
-              390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:develop )
+            ( cd api && docker tag ralphexp/webapp:latest 390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:latest ) ;
+            ( cd api && docker tag ralphexp/webapp:latest 390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:develop ) ;
+            ( cd api && docker push 390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:latest ) ;
+            ( cd api && docker push 390844772765.dkr.ecr.us-east-2.amazonaws.com/ralphexp/webapp:develop )
 
 workflows:
   ci_cd:
