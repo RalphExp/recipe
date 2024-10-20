@@ -80,8 +80,8 @@ workflows:
       - test
       - build:
           requires:
-            test  
+            - test  
       - deploy:
           requires:
-            test
-            build
+            - test
+            - build
